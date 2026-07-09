@@ -40,6 +40,13 @@ def checkin(cookie: str) -> dict:
                 "message": f"✅ 签到成功！获得 {points} 积分，连续 {streak} 天",
                 "data": data
             }
+        elif "already" in data.get("message", "").lower() or "logged" in data.get("message", "").lower() or "today" in data.get("message", "").lower():
+            # 已签到，不算失败
+            return {
+                "success": True,
+                "message": f"ℹ️ 今日已签到：{data.get('message', '')}",
+                "data": data
+            }
         else:
             msg = data.get("message", "未知错误")
             return {

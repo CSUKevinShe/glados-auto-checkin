@@ -22,22 +22,38 @@ def checkin(cookie: str) -> dict:
         dict: {"success": bool, "message": str, "data": dict}
     """
     url = "https://glados.one/api/user/checkin"
+    
+    # 模拟真实浏览器请求头
     headers = {
         "Cookie": cookie,
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Origin": "https://glados.one",
+        "Referer": "https://glados.one/console",
+        "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"macOS"',
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
     }
     
     try:
-        resp = requests.post(url, headers=headers, json={}, timeout=30)
+        # 使用 session 保持连接
+        session = requests.Session()
+        resp = session.post(url, headers=headers, json={}, timeout=30)
         data = resp.json()
         
-        if data.get("code") == 0:
+        if data.get("code") == 0 or data.get("code") == 1:
             points = data.get("points", 0)
             streak = data.get("streak", 0)
+            message = data.get("message", "签到成功")
             return {
                 "success": True,
-                "message": f"✅ 签到成功！获得 {points} 积分，连续 {streak} 天",
+                "message": f"✅ {message}！获得 {points} 积分，连续 {streak} 天",
                 "data": data
             }
         elif "already" in data.get("message", "").lower() or "logged" in data.get("message", "").lower() or "today" in data.get("message", "").lower():
@@ -45,6 +61,13 @@ def checkin(cookie: str) -> dict:
             return {
                 "success": True,
                 "message": f"ℹ️ 今日已签到：{data.get('message', '')}",
+                "data": data
+            }
+        elif "automated" in data.get("message", "").lower():
+            # 自动化检测
+            return {
+                "success": False,
+                "message": f"⚠️ 自动化检测：{data.get('message', '')}。请在浏览器手动登录一次后重试。",
                 "data": data
             }
         else:

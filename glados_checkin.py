@@ -30,7 +30,7 @@ def checkin(cookie: str) -> dict:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "Accept": "application/json, text/plain, */*",
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "Accept-Encoding": "gzip, deflate, br",
+        # 不发送 Accept-Encoding，让 requests 自动处理解压
         "Origin": "https://glados.one",
         "Referer": "https://glados.one/console",
         "Sec-Ch-Ua": '"Chromium";v="154", "Microsoft Edge";v="154", "Not A(Brand";v="99"',

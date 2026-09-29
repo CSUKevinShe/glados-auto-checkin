@@ -23,29 +23,56 @@ def checkin(cookie: str) -> dict:
     """
     url = "https://glados.one/api/user/checkin"
     
-    # 模拟真实浏览器请求头
+    # 模拟真实浏览器请求头（Windows Edge）
     headers = {
         "Cookie": cookie,
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0",
         "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
         "Accept-Encoding": "gzip, deflate, br",
         "Origin": "https://glados.one",
         "Referer": "https://glados.one/console",
-        "Sec-Ch-Ua": '"Chromium";v="131", "Not_A Brand";v="24"',
+        "Sec-Ch-Ua": '"Chromium";v="154", "Microsoft Edge";v="154", "Not A(Brand";v="99"',
         "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"macOS"',
+        "Sec-Ch-Ua-Platform": '"Windows"',
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
+        "Priority": "u=1, i",
     }
     
     try:
         # 使用 session 保持连接
         session = requests.Session()
+        
+        # 先访问首页建立会话
+        session.get("https://glados.one/console", headers={
+            "Cookie": cookie,
+            "User-Agent": headers["User-Agent"],
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }, timeout=30)
+        
+        # 再签到
         resp = session.post(url, headers=headers, json={}, timeout=30)
-        data = resp.json()
+        
+        # 检查响应内容
+        if resp.status_code != 200:
+            return {
+                "success": False,
+                "message": f"❌ HTTP {resp.status_code}",
+                "data": {}
+            }
+        
+        try:
+            data = resp.json()
+        except:
+            # 非 JSON 响应（可能是登录页）
+            return {
+                "success": False,
+                "message": f"❌ 响应非JSON，Cookie可能已失效。响应前100字符: {resp.text[:100]}",
+                "data": {}
+            }
         
         if data.get("code") == 0 or data.get("code") == 1:
             points = data.get("points", 0)
